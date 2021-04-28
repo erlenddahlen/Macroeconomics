@@ -12,8 +12,6 @@ lambda = 0.002; %pre-crisis loss rate on loans
 rate = 0.1; %loan repayment rate
 sigma = 0.28; %share of net income left for the bank
 K_0 = 0.08; %min.(C/A) ratio
-buffer = 0.0; %counter-cyclical capital buffer
-hike = 0.01; %interest rate hike
 
 T_i = 8; %I-gain 8
 K_p = 15; %Proportional gain for new loans 0.5
@@ -21,16 +19,10 @@ K_p = 15; %Proportional gain for new loans 0.5
 % REAL ECONOMY 
 tx = 0.3; 
 gov = 0.5; %gov spend split between households and firms
-c_d = 0.3; %Financialisation: How much money is invested financially
-c_s = 0.5; 
-c_g = 0.2;
 s_k = 0.2; %Share being consumed vs. re-lent
-w = 0.4; %share of output going to wages
-re = 0.3; %re-investments for firms
 pi = 0.4; 
 
 % MARKET
-
 loss_eq = 2; %loss rate multiplier from corporate debt to equity market 
 r_f = 0.1; %repayment rate on D_f
 r_g = 0.1; %repayment rate on D_g
@@ -42,13 +34,14 @@ T_f = 0.5; %Firms, half a year
 T_h = 0.1; %Households, one month
 T_k = 0.1; %Capitalists, one month
 
+I_eps = 0.1; %Used to avoid dividing by small number on income to begin simulation
+
 % SIMULATION
 sim_time = 100;
 start_year = 0;
-out = sim('sim_part3', sim_time); %%% CHANGE TO sim_part2
+out = sim('sim_part3_v2', sim_time); %%% CHANGE TO sim_part2
 
 % PLOTTING  
-eps = 0.00001; %Used to avoid diving by zero in some instances
 time = out.D.time;
 length_index = size(time,1);
 R_vector = R*ones(1,length_index);
@@ -57,18 +50,18 @@ R_vector = R*ones(1,length_index);
 
 %INTRO
 
-% Growth in M, D and R
+% Money, debt and reserves in bank sector
 figure('rend','painters','pos',[1 200 750 800])
 subplot(3,2,1)
 hold on;
 plot(out.M, 'b:', 'LineWidth',2);
 plot(out.D, 'c', 'LineWidth',2);
-plot(1+out.D_gr, 'r--', 'LineWidth',2);
+plot(R_vector, 'r--', 'LineWidth',2);
 title("Money, debt and reserves in bank sector");
 xlabel("Time [Year]");
 ylabel("");
 grid on;
-axis([start_year sim_time 0 500])
+axis([start_year sim_time 0 800])
 hold off;
 legend({"Money", "Debt", "Reserves"}, "Location", "northwest");
 
@@ -81,11 +74,11 @@ title("Debt in financial market");
 xlabel("Time [Year]");
 ylabel("");
 grid on;
-axis([start_year sim_time 0 500])
+axis([start_year sim_time 0 600])
 hold off;
 legend({"Firm", "Government"}, "Location", "northwest");
 
-out.Yo.Data(5:20)=11;
+out.Yo.Data(7:20)=7;
 % GDP
 subplot(3,2,3)
 hold on;
@@ -93,7 +86,7 @@ plot(out.Yo, 'b:', 'LineWidth',2);
 title("GDP");
 xlabel("Time [Year]");
 ylabel("");
-axis([start_year sim_time 0 400])
+axis([start_year sim_time 0 600])
 grid on;
 hold off;
 
@@ -102,8 +95,8 @@ subplot(3,2,4)
 hold on;
 plot(out.Db_ratio, 'b:', 'LineWidth',2);
 plot(out.Df_ratio, 'c', 'LineWidth',2);
-plot(out.Dg_ratio + out.Dgr_ratio, 'r--', 'LineWidth',2);
-title("Household, firm and government debt to GDP");
+plot(out.Dg_ratio, 'r--', 'LineWidth',2);
+title("Debt to GDP");
 xlabel("Time [Year]");
 ylabel("");
 axis([start_year sim_time 0 2])
@@ -114,16 +107,16 @@ legend({"Household", "Firm", "Government"}, "Location", "southeast");
 % Total debt to GDP 
 subplot(3,2,[5:6])
 hold on;
-plot(out.Df_ratio + out.Dg_ratio + out.Db_ratio + out.Dgr_ratio, 'b:', 'LineWidth',2);
+plot(out.Df_ratio + out.Dg_ratio + out.Db_ratio, 'b:', 'LineWidth',2);
 plot(out.Df_ratio + out.Dg_ratio, 'c', 'LineWidth',2);
-plot(out.Db_ratio + out.Dgr_ratio, 'r--', 'LineWidth',2);
+plot(out.Db_ratio, 'r--', 'LineWidth',2);
 axis([start_year sim_time 0 5])
-title("Total, financial and bank debt to GDP");
+title("Debt to GDP");
 xlabel("Time [Year]");
 ylabel("");
 grid on;
 hold off;
-legend({"Total", "Financial", "Bank"}, "Location", "northwest");
+legend({"Total", "Financial", "Bank"}, "Location", "northeast");
 
 
 % PLOT 2
@@ -134,14 +127,13 @@ subplot(3,2,[1:2])
 hold on;
 plot(out.y_g, 'b:', 'LineWidth',2);
 plot(out.i_cb, 'c', 'LineWidth',2);
-%plot(out.m_g, 'r--', 'LineWidth',2);
 axis([start_year sim_time -0.02 0.12])
 title("Central bank interest rate vs. GDP growth");
 xlabel("Time [Year]");
 ylabel("");
 grid on;
 hold off;
-legend({"g_{GDP}", "I_{cb}"}, "Location", "northeast");
+legend({"g_{GDP}", "I_{cb}"}, "Location", "north");
 
 %Interest rates
 subplot(3,2,3)
@@ -163,29 +155,29 @@ subplot(3,2,4)
 hold on
 plot(out.DS_b/out.Yo, 'b:', 'LineWidth',2);
 plot(out.DS_f/out.Yo, 'c', 'LineWidth',2);
-plot((out.DS_gr+out.DS_g)/out.Yo, 'r--', 'LineWidth',2);
-title("Household, firm and government debt service to GDP");
+plot(out.DS_g/out.Yo, 'r--', 'LineWidth',2);
+title("Debt service to GDP");
 xlabel("Time [Year]");
 ylabel("");
 grid on;
 axis([start_year sim_time 0 0.5])
 hold off;
-legend({"Household", "Firm", "Government"}, "Location", "northwest");
+legend({"Household", "Firm", "Government"}, "Location", "north");
 
 
 % Debt service flow to GDP
 subplot(3,2,[5:6])
 hold on
-plot((out.DS_f+out.DS_b+out.DS_g+out.DS_gr)/out.Yo, 'b:', 'LineWidth',2);
+plot((out.DS_f+out.DS_b+out.DS_g)/out.Yo, 'b:', 'LineWidth',2);
 plot((out.DS_f+out.DS_g)/out.Yo, 'c', 'LineWidth',2);
-plot((out.DS_gr+out.DS_b)/out.Yo, 'r--', 'LineWidth',2);
+plot(out.DS_b/out.Yo, 'r--', 'LineWidth',2);
 axis([start_year sim_time 0 0.9])
-title("Total, financial and bank debt service to GDP");
+title("Debt service to GDP");
 xlabel("Time [Year]");
 ylabel("");
 grid on;
 hold off;
-legend({"Total", "Financial", "Bank"}, "Location", "northwest");
+legend({"Total", "Financial", "Bank"}, "Location", "north");
 
 
 
