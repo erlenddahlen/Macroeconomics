@@ -5,21 +5,21 @@ D = 0; %bank's outstanding loans
 M = 0; %deposit money 
 R = 1; %bank's reserves at Central Bank 
 K = D+R-M; %bank's capital 
-i_cb = 0.11; %central bank interest rate 
+i_cb = 0.1; %central bank interest rate 
 i_b_m = 0.025; %interest-margin for banks
 i_f_m = 0.05; %interest-margin for firms
 lambda = 0.002; %pre-crisis loss rate on loans
-rate = 0.1; %loan repayment rate
-sigma = 0.28; %share of net income left for the bank
+r_b = 0.1; %loan repayment rate
+b_s = 0.28; %share of net income left for the bank
 K_0 = 0.08; %min.(C/A) ratio
 
 T_i = 8; %I-gain 8
 K_p = 15; %Proportional gain for new loans 0.5
 
 % REAL ECONOMY 
-tx = 0.3; 
-gov = 0.5; %gov spend split between households and firms
-s_k = 0.2; %Share being consumed vs. re-lent
+t_x = 0.3; 
+g_s = 0.5; %gov spend split between households and firms
+f_s = 0.2; %Share being consumed vs. re-lent
 pi = 0.4; 
 
 % MARKET
@@ -37,7 +37,7 @@ T_k = 0.1; %Capitalists, one month
 I_eps = 0.1; %Used to avoid dividing by small number on income to begin simulation
 
 % SIMULATION
-sim_time = 55;
+sim_time = 57;
 start_year = 0;
 out = sim('sim_part1', sim_time); %%% CHANGE TO sim_part2
 
@@ -61,7 +61,7 @@ title("Money, debt and reserves in bank sector");
 xlabel("Time [Year]");
 ylabel("");
 grid on;
-axis([start_year sim_time 0 80])
+axis([start_year sim_time 0 100])
 hold off;
 legend({"Money", "Debt", "Reserves"}, "Location", "northwest");
 
